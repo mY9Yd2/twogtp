@@ -18,17 +18,22 @@
 			]
 		},
 		{
-			"name": "Random",
-			"path": "../gtp/examples/random",
-			"args": [],
+			"name": "GNU Go",
+			"path": "/usr/bin/gnugo",
+			"args": [
+				"--mode",
+				"gtp",
+				"--chinese-rules",
+				"--capture-all-dead"
+			],
 			"commands": []
 		}
 	],
 	"timeout_seconds": 120,
 	"passing_wins": true,
 	"restart": false,
-	"games": 100,
-	"size": 19,
+	"games": 3,
+	"size": 13,
 	"komi": 7.5,
 	"opening": "foo.sgf"
 }

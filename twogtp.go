@@ -13,50 +13,50 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rooklift/sgf"
+	"github.com/mY9Yd2/sgf"
 )
 
 type EngineConfig struct {
-	Name				string				`json:"name"`
-	Path				string				`json:"path"`
-	Args				[]string			`json:"args"`
-	Commands			[]string			`json:"commands"`
+	Name     string   `json:"name"`
+	Path     string   `json:"path"`
+	Args     []string `json:"args"`
+	Commands []string `json:"commands"`
 }
 
 type ConfigStruct struct {
-	EngineCfg			[]*EngineConfig		`json:"engines"`
+	EngineCfg []*EngineConfig `json:"engines"`
 
-	TimeoutSecs			time.Duration		`json:"timeout_seconds"`
-	PassingWins			bool				`json:"passing_wins"`			// Surprisingly good heuristic for LZ at least
-	Restart				bool				`json:"restart"`
-	Games				int					`json:"games"`
+	TimeoutSecs time.Duration `json:"timeout_seconds"`
+	PassingWins bool          `json:"passing_wins"` // Surprisingly good heuristic for LZ at least
+	Restart     bool          `json:"restart"`
+	Games       int           `json:"games"`
 
-	Size				int					`json:"size"`
-	Komi				float64				`json:"komi"`
-	Opening				string				`json:"opening"`
+	Size    int     `json:"size"`
+	Komi    float64 `json:"komi"`
+	Opening string  `json:"opening"`
 
-	Winners				string				`json:"winners"`
+	Winners string `json:"winners"`
 }
 
 type Engine struct {
-	Stdin		io.WriteCloser
-	Stdout		*bufio.Scanner
+	Stdin  io.WriteCloser
+	Stdout *bufio.Scanner
 
-	Name		string			// For the SGF "PB" or "PW" properties
-	Dir			string			// Working directory
-	Base		string			// Command name, e.g. "leelaz.exe"
+	Name string // For the SGF "PB" or "PW" properties
+	Dir  string // Working directory
+	Base string // Command name, e.g. "leelaz.exe"
 
-	Args		[]string		// Not including base
-	Commands	[]string		// GTP commands to be sent at start, e.g. time limit
+	Args     []string // Not including base
+	Commands []string // GTP commands to be sent at start, e.g. time limit
 
-	Process		*os.Process
+	Process *os.Process
 }
 
 // -----------------------------------------------------------------------------
 
 var config ConfigStruct
 
-var KillTime = make(chan time.Time, 1024)	// Push back the timeout death of the app by sending to this.
+var KillTime = make(chan time.Time, 1024) // Push back the timeout death of the app by sending to this.
 var RegisterEngine = make(chan *Engine, 8)
 
 // -----------------------------------------------------------------------------
@@ -99,7 +99,7 @@ func init() {
 		config.Size = root.RootBoardSize()
 	}
 
-	if config.Size < 1 {			// Note this must come after the opening SGF load, above.
+	if config.Size < 1 { // Note this must come after the opening SGF load, above.
 		config.Size = 19
 	} else if config.Size > 25 {
 		fmt.Printf("Size %d not supported\n", config.Size)
@@ -122,7 +122,7 @@ func init() {
 
 func main() {
 
-	KillTime <- time.Now().Add(2 * time.Minute)		// 2 minute grace period to start up.
+	KillTime <- time.Now().Add(2 * time.Minute) // 2 minute grace period to start up.
 
 	engines := []*Engine{new(Engine), new(Engine)}
 
@@ -134,7 +134,7 @@ func main() {
 		}
 	}
 
-	dyers := make(map[string]string)				// dyer --> first filename
+	dyers := make(map[string]string) // dyer --> first filename
 	collisions := 0
 
 	if len(config.Winners) > 0 {
@@ -142,13 +142,13 @@ func main() {
 		config.PrintScores()
 	}
 
-	_, config_base := filepath.Split(os.Args[1])	// Earlier we did Chdir() to config's dir, so only need base
+	_, config_base := filepath.Split(os.Args[1]) // Earlier we did Chdir() to config's dir, so only need base
 
 	for round := len(config.Winners); round < config.Games; round++ {
 
 		root, filename, err := play_game(engines, round)
 
-		config.Save(config_base)					// Save the scores
+		config.Save(config_base) // Save the scores
 
 		new_dyer := root.Dyer()
 
@@ -181,7 +181,7 @@ func play_game(engines []*Engine, round int) (*sgf.Node, string, error) {
 
 	var black_engine, white_engine *Engine
 
-	if round % 2 == 0 {
+	if round%2 == 0 {
 		black_engine, white_engine = engines[0], engines[1]
 	} else {
 		black_engine, white_engine = engines[1], engines[0]
@@ -216,7 +216,7 @@ func play_game(engines []*Engine, round int) (*sgf.Node, string, error) {
 		e.SendAndReceive(fmt.Sprintf("boardsize %d", config.Size))
 		e.SendAndReceive(fmt.Sprintf("komi %.1f", config.Komi))
 		e.SendAndReceive("clear_board")
-		e.SendAndReceive("clear_cache")		// Always wanted where available
+		e.SendAndReceive("clear_cache") // Always wanted where available
 
 		for _, command := range e.Commands {
 			e.SendAndReceive(command)
@@ -245,12 +245,12 @@ func play_game(engines []*Engine, round int) (*sgf.Node, string, error) {
 		if len(node.AllValues("B")) != 0 || len(node.AllValues("AB")) != 0 {
 			colour = sgf.WHITE
 			engine, opponent = white_engine, black_engine
-		} else {														// The default.
+		} else { // The default.
 			colour = sgf.BLACK
 			engine, opponent = black_engine, white_engine
 		}
 
-		if time.Now().Sub(last_save_time) > 5 * time.Second {
+		if time.Now().Sub(last_save_time) > 5*time.Second {
 			node.Save("current.sgf")
 			last_save_time = time.Now()
 		}
@@ -259,7 +259,7 @@ func play_game(engines []*Engine, round int) (*sgf.Node, string, error) {
 
 		fmt.Printf(move + " ")
 
-		KillTime <- time.Now().Add(config.TimeoutSecs * time.Second)	// Delay the timeout death of this app.
+		KillTime <- time.Now().Add(config.TimeoutSecs * time.Second) // Delay the timeout death of this app.
 
 		if err != nil {
 
@@ -268,7 +268,7 @@ func play_game(engines []*Engine, round int) (*sgf.Node, string, error) {
 			root.SetValue("RE", re)
 			fmt.Printf(re)
 
-			final_error = err						// Set the error to return to caller. This kills the app.
+			final_error = err // Set the error to return to caller. This kills the app.
 			break
 
 		} else if move == "resign" {
@@ -314,7 +314,7 @@ func play_game(engines []*Engine, round int) (*sgf.Node, string, error) {
 				root.SetValue("RE", re)
 				fmt.Printf(re)
 
-				final_error = err					// Set the error to return to caller. This kills the app.
+				final_error = err // Set the error to return to caller. This kills the app.
 				break
 			}
 		}
@@ -330,7 +330,7 @@ func play_game(engines []*Engine, round int) (*sgf.Node, string, error) {
 			root.SetValue("RE", re)
 			fmt.Printf(re)
 
-			final_error = err						// Set the error to return to caller. This kills the app.
+			final_error = err // Set the error to return to caller. This kills the app.
 			break
 		}
 	}
@@ -344,7 +344,7 @@ func play_game(engines []*Engine, round int) (*sgf.Node, string, error) {
 	outfilename := time.Now().Format("20060102-15-04-05") + ".sgf"
 	for appendix := byte('a'); appendix <= 'z'; appendix++ {
 		_, err := os.Stat(outfilename)
-		if err == nil {					// File exists...
+		if err == nil { // File exists...
 			outfilename = time.Now().Format("20060102-15-04-05") + string([]byte{appendix}) + ".sgf"
 		} else {
 			break
@@ -365,7 +365,7 @@ func killer() {
 	// This is NOT the only way the app can quit.
 
 	var killtime time.Time
-	var fts_armed bool				// Have we ever received an update?
+	var fts_armed bool // Have we ever received an update?
 
 	var engines []*Engine
 
@@ -373,12 +373,12 @@ func killer() {
 
 		time.Sleep(642 * time.Millisecond)
 
-		ClearChannels:
+	ClearChannels:
 		for {
 			select {
-			case killtime = <- KillTime:
+			case killtime = <-KillTime:
 				fts_armed = true
-			case engine := <- RegisterEngine:
+			case engine := <-RegisterEngine:
 				engines = append(engines, engine)
 			default:
 				break ClearChannels
@@ -417,17 +417,17 @@ func (self *ConfigStruct) Win(re string) {
 	// re is something like "B+R"
 
 	if len(re) == 0 || (re[0] != 'B' && re[0] != 'W') {
-		self.Winners += "0"								// Draw / unknown result
+		self.Winners += "0" // Draw / unknown result
 		return
 	}
 
-	if len(self.Winners) % 2 == 0 {						// Engine 1 is black
+	if len(self.Winners)%2 == 0 { // Engine 1 is black
 		if re[0] == 'B' {
 			self.Winners += "1"
 		} else {
 			self.Winners += "2"
 		}
-	} else {											// Engine 2 is black
+	} else { // Engine 2 is black
 		if re[0] == 'B' {
 			self.Winners += "2"
 		} else {
@@ -478,13 +478,13 @@ func (self *ConfigStruct) PrintScores() {
 
 	for n := 0; n < len(self.Winners); n++ {
 		if self.Winners[n] == '1' {
-			if n % 2 == 0 {					// Engine 1 black, engine 2 white
+			if n%2 == 0 { // Engine 1 black, engine 2 white
 				black_wins_1++
 			} else {
 				white_wins_1++
 			}
 		} else if self.Winners[n] == '2' {
-			if n % 2 == 0 {					// Engine 1 black, engine 2 white, as above (same condition)
+			if n%2 == 0 { // Engine 1 black, engine 2 white, as above (same condition)
 				white_wins_2++
 			} else {
 				black_wins_2++
@@ -494,14 +494,14 @@ func (self *ConfigStruct) PrintScores() {
 
 	var black_winrate_1, black_winrate_2, white_winrate_1, white_winrate_2 float64
 
-	if black_wins_1 + white_wins_2 > 0 {
-		black_winrate_1 = float64(black_wins_1) / float64(black_wins_1 + white_wins_2)
-		white_winrate_2 = float64(white_wins_2) / float64(black_wins_1 + white_wins_2)
+	if black_wins_1+white_wins_2 > 0 {
+		black_winrate_1 = float64(black_wins_1) / float64(black_wins_1+white_wins_2)
+		white_winrate_2 = float64(white_wins_2) / float64(black_wins_1+white_wins_2)
 	}
 
-	if black_wins_2 + white_wins_1 > 0 {
-		black_winrate_2 = float64(black_wins_2) / float64(black_wins_2 + white_wins_1)
-		white_winrate_1 = float64(white_wins_1) / float64(black_wins_2 + white_wins_1)
+	if black_wins_2+white_wins_1 > 0 {
+		black_winrate_2 = float64(black_wins_2) / float64(black_wins_2+white_wins_1)
+		white_winrate_1 = float64(white_wins_1) / float64(black_wins_2+white_wins_1)
 	}
 
 	format1 := "%-20.20s   %4v %-7v %4v %-7v %4v %-7v\n"
@@ -529,7 +529,7 @@ func (self *Engine) Start(name, path string, args []string, commands []string) {
 
 	self.Restart()
 
-	RegisterEngine <- self			// Let the killer goroutine know we exist
+	RegisterEngine <- self // Let the killer goroutine know we exist
 }
 
 func (self *Engine) Restart() {
@@ -574,16 +574,16 @@ func (self *Engine) SendAndReceive(msg string) (string, error) {
 	for self.Stdout.Scan() {
 
 		t := self.Stdout.Text()
-		if len(t) > 0 && buf.Len() > 0 {	// We got a meaningful line, and already had some, so add a \n between them.
+		if len(t) > 0 && buf.Len() > 0 { // We got a meaningful line, and already had some, so add a \n between them.
 			buf.WriteString("\n")
 		}
 		buf.WriteString(t)
 
-		if len(t) == 0 {					// Last scan was an empty line, meaning the response has ended.
+		if len(t) == 0 { // Last scan was an empty line, meaning the response has ended.
 
 			s := strings.TrimSpace(buf.String())
 
-			if len(s) == 0 {				// Didn't even get an =
+			if len(s) == 0 { // Didn't even get an =
 				return "", fmt.Errorf("SendAndReceive(): got empty response")
 			}
 
@@ -612,7 +612,7 @@ func (self *Engine) SendAndReceive(msg string) (string, error) {
 // ---------------------------------------------------------------------------------------------
 
 func consume_scanner(scanner *bufio.Scanner) {
-	for scanner.Scan() {								// Will end when the pipe closes due to an engine restart.
+	for scanner.Scan() { // Will end when the pipe closes due to an engine restart.
 		// fmt.Printf("%s\n", scanner.Text())
 	}
 }

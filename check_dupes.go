@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/rooklift/sgf"
+	"github.com/mY9Yd2/sgf"
 )
 
 func main() {
@@ -24,7 +24,7 @@ func main() {
 		return
 	}
 
-	var dyers = make(map[string]string)			// dyer --> filename
+	var dyers = make(map[string]string) // dyer --> filename
 	count := 0
 
 	for _, file := range files {

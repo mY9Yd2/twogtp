@@ -369,7 +369,7 @@ func playGame(engines []*Engine, round int) (*sgf.Node, string, error) {
 
 		move, err := engine.SendAndReceive(fmt.Sprintf("genmove %s", colour.Lower()))
 
-		fmt.Printf(move + " ")
+		fmt.Printf("%s", move+" ")
 
 		KillTime <- time.Now().Add(time.Duration(playConfig.TimeoutSecs) * time.Second)
 
@@ -377,7 +377,7 @@ func playGame(engines []*Engine, round int) (*sgf.Node, string, error) {
 			re := "Void"
 			playConfig.Win(re)
 			root.SetValue("RE", re)
-			fmt.Printf(re)
+			fmt.Printf("%s", re)
 
 			finalError = err
 			break
@@ -386,7 +386,7 @@ func playGame(engines []*Engine, round int) (*sgf.Node, string, error) {
 			re := fmt.Sprintf("%s+R", colour.Opposite().Upper())
 			playConfig.Win(re)
 			root.SetValue("RE", re)
-			fmt.Printf(re)
+			fmt.Printf("%s", re)
 
 			break
 
@@ -398,7 +398,7 @@ func playGame(engines []*Engine, round int) (*sgf.Node, string, error) {
 				re := fmt.Sprintf("%s+", colour.Upper())
 				playConfig.Win(re)
 				root.SetValue("RE", re)
-				fmt.Printf(re)
+				fmt.Printf("%s", re)
 
 				node.SetValue("C", fmt.Sprintf("%s declared victory.", engine.Name))
 				break
@@ -417,7 +417,7 @@ func playGame(engines []*Engine, round int) (*sgf.Node, string, error) {
 				re := "Void"
 				playConfig.Win(re)
 				root.SetValue("RE", re)
-				fmt.Printf(re)
+				fmt.Printf("%s", re)
 
 				finalError = err
 				break
@@ -431,7 +431,7 @@ func playGame(engines []*Engine, round int) (*sgf.Node, string, error) {
 				re := "Void"
 				playConfig.Win(re)
 				root.SetValue("RE", re)
-				fmt.Printf(re)
+				fmt.Printf("%s", re)
 
 				finalError = err
 				break
@@ -623,13 +623,14 @@ func (self *ConfigStruct) PrintScores() {
 	whiteWins2 := 0
 
 	for n := 0; n < len(self.Winners); n++ {
-		if self.Winners[n] == '1' {
+		switch self.Winners[n] {
+		case '1':
 			if n%2 == 0 {
 				blackWins1++
 			} else {
 				whiteWins1++
 			}
-		} else if self.Winners[n] == '2' {
+		case '2':
 			if n%2 == 0 {
 				whiteWins2++
 			} else {

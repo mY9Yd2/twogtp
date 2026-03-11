@@ -1,11 +1,12 @@
+# twogtp
+
 Connect two Go (game) engines via [Go Text Protocol](https://www.lysator.liu.se/~gunnar/gtp/gtp2-spec-draft2/gtp2-spec.html) (GTP).
 
-# Building
+## Building
 
-* `go get github.com/rooklift/sgf`
-* `go build twogtp.go`
+* `make`
 
-# Features
+## Features
 
 * Plays multiple games with alternating colours
 * Optional forced opening via SGF file
@@ -15,7 +16,7 @@ Connect two Go (game) engines via [Go Text Protocol](https://www.lysator.liu.se/
 * Timeouts
 * Automatic SGF saving
 
-# Notes
+## Notes
 
 * SGF files are saved in the same directory as the config file (which you pass to `twogtp` as its only command line argument).
 * Control whether the engines are restarted between games with the `restart` option. We try to send the GTP command `clear_cache` to all engines anyway, but this was added to Leela Zero only after 0.17. Without it LZ may reuse its cached data, which can only be prevented by restarting.

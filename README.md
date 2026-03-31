@@ -67,6 +67,11 @@ Create a JSON config file for your match:
 }
 ```
 
+## Score
+
+If you use `passing_wins: false`, you will need an external program to perform scoring.
+There is an [sgf-score](./sgf-score.sh) script that you can use and modify according to your rule preferences.
+
 ## Features
 
 * Plays multiple games with alternating colours

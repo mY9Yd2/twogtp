@@ -35,7 +35,7 @@ type ConfigStruct struct {
 	Komi    float64 `json:"komi"`
 	Opening string  `json:"opening"`
 
-	Winners string `json:"winners"`
+	winners string
 }
 
 type Engine struct {
@@ -176,12 +176,6 @@ func runPlay(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("expected 2 engines, got %d", len(playConfig.EngineCfg))
 	}
 
-	if len(playConfig.Winners) >= playConfig.Games {
-		fmt.Printf("\nMatch already ended. To play on, delete the winners field from the config file, or increase the games count.\n\n")
-		playConfig.PrintScores()
-		return nil
-	}
-
 	go killer()
 
 	KillTime <- time.Now().Add(2 * time.Minute)
@@ -202,14 +196,14 @@ func runPlay(cmd *cobra.Command, args []string) error {
 	dyers := loadExistingDyers(".")
 	collisions := 0
 
-	if len(playConfig.Winners) > 0 {
+	if len(playConfig.winners) > 0 {
 		fmt.Printf("\n")
 		playConfig.PrintScores()
 	}
 
 	_, configBase := filepath.Split(f)
 
-	for round := len(playConfig.Winners); round < playConfig.Games; round++ {
+	for round := len(playConfig.winners); round < playConfig.Games; round++ {
 		root, filename, err := playGame(engines, round)
 
 		playConfig.Save(configBase)
@@ -567,21 +561,21 @@ func cleanQuit(n int, engines []*Engine) {
 
 func (self *ConfigStruct) Win(re string) {
 	if len(re) == 0 || (re[0] != 'B' && re[0] != 'W') {
-		self.Winners += "0"
+		self.winners += "0"
 		return
 	}
 
-	if len(self.Winners)%2 == 0 {
+	if len(self.winners)%2 == 0 {
 		if re[0] == 'B' {
-			self.Winners += "1"
+			self.winners += "1"
 		} else {
-			self.Winners += "2"
+			self.winners += "2"
 		}
 	} else {
 		if re[0] == 'B' {
-			self.Winners += "2"
+			self.winners += "2"
 		} else {
-			self.Winners += "1"
+			self.winners += "1"
 		}
 	}
 }
@@ -605,12 +599,12 @@ func (self *ConfigStruct) Save(filename string) {
 }
 
 func (self *ConfigStruct) PrintScores() {
-	wins1 := strings.Count(self.Winners, "1")
-	wins2 := strings.Count(self.Winners, "2")
+	wins1 := strings.Count(self.winners, "1")
+	wins2 := strings.Count(self.winners, "2")
 
 	var winrate1, winrate2 float64
 
-	validGames := len(self.Winners) - strings.Count(self.Winners, "0")
+	validGames := len(self.winners) - strings.Count(self.winners, "0")
 
 	if validGames > 0 {
 		winrate1 = float64(wins1) / float64(validGames)
@@ -622,8 +616,8 @@ func (self *ConfigStruct) PrintScores() {
 	blackWins2 := 0
 	whiteWins2 := 0
 
-	for n := 0; n < len(self.Winners); n++ {
-		switch self.Winners[n] {
+	for n := 0; n < len(self.winners); n++ {
+		switch self.winners[n] {
 		case '1':
 			if n%2 == 0 {
 				blackWins1++

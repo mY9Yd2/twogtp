@@ -89,5 +89,4 @@ There is an [sgf-score](./sgf-score.sh) script that you can use and modify accor
 * The `restart` option controls whether engines are restarted between games. This is useful for engines like Leela Zero that may reuse cached data between games.
 * The `passing_wins` option is a heuristic for early match termination; the first engine to pass is declared the winner.
 * When a game ends due to 2 passes, the score is not calculated automatically.
-* Match results are saved to the config file's `winners` field, allowing resumption by re-running the same config.
 * Use `check-dupes` to find games with identical Dyer Signatures (indicating similar game patterns).

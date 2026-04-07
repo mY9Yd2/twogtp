@@ -201,12 +201,8 @@ func runPlay(cmd *cobra.Command, args []string) error {
 		playConfig.PrintScores()
 	}
 
-	_, configBase := filepath.Split(f)
-
 	for round := len(playConfig.winners); round < playConfig.Games; round++ {
 		root, filename, err := playGame(engines, round)
-
-		playConfig.Save(configBase)
 
 		// Only track Dyer signatures for valid (non-voided) games.
 		// Voided games have no RE or RE starting with neither 'B' nor 'W'.
@@ -577,24 +573,6 @@ func (self *ConfigStruct) Win(re string) {
 		} else {
 			self.winners += "1"
 		}
-	}
-}
-
-func (self *ConfigStruct) Save(filename string) {
-	outfile, err := os.Create(filename)
-	if err != nil {
-		fmt.Printf("\n%v\n", err)
-		return
-	}
-	defer outfile.Close()
-
-	enc := json.NewEncoder(outfile)
-	enc.SetIndent("", "\t")
-
-	err = enc.Encode(self)
-	if err != nil {
-		fmt.Printf("\n%v\n", err)
-		return
 	}
 }
 

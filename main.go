@@ -54,6 +54,8 @@ type Engine struct {
 
 // -----------------------------------------------------------------------------
 
+const sgfDir = "sgf-files"
+
 var KillTime = make(chan time.Time, 1024)
 var RegisterEngine = make(chan *Engine, 8)
 
@@ -125,6 +127,11 @@ func runPlay(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("couldn't change working directory: %w", err)
 	}
 
+	err = os.MkdirAll(sgfDir, 0755)
+	if err != nil {
+		return fmt.Errorf("couldn't create sgf directory: %w", err)
+	}
+
 	file, err := os.ReadFile(f)
 	if err != nil {
 		return fmt.Errorf("couldn't load config file: %w", err)
@@ -193,7 +200,7 @@ func runPlay(cmd *cobra.Command, args []string) error {
 
 	// Pre-populate dyers map from all existing SGF files on disk,
 	// so cross-session collisions are detected correctly.
-	dyers := loadExistingDyers(".")
+	dyers := loadExistingDyers(sgfDir)
 	collisions := 0
 
 	if len(playConfig.winners) > 0 {
@@ -353,7 +360,7 @@ func playGame(engines []*Engine, round int) (*sgf.Node, string, error) {
 		}
 
 		if time.Since(lastSaveTime) > 5*time.Second {
-			node.Save("current.sgf")
+			node.Save(filepath.Join(sgfDir, "current.sgf"))
 			lastSaveTime = time.Now()
 		}
 
@@ -436,18 +443,19 @@ func playGame(engines []*Engine, round int) (*sgf.Node, string, error) {
 	}
 
 	baseFilename := time.Now().Format("20060102-15-04-05")
-	outFilename := baseFilename + ".sgf"
+	outFilename := filepath.Join(sgfDir, baseFilename+".sgf")
+
 	for appendix := byte('a'); appendix <= 'z'; appendix++ {
 		_, err := os.Stat(outFilename)
 		if err == nil {
-			outFilename = baseFilename + string([]byte{appendix}) + ".sgf"
+			outFilename = filepath.Join(sgfDir, baseFilename+string([]byte{appendix})+".sgf")
 		} else {
 			break
 		}
 	}
 
 	node.Save(outFilename)
-	os.Remove("current.sgf")
+	os.Remove(filepath.Join(sgfDir, "current.sgf"))
 
 	return node.GetRoot(), outFilename, finalError
 }

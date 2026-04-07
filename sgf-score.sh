@@ -9,7 +9,14 @@ shopt -s nullglob
 
 declare -A wins
 
-for file in *.sgf; do
+SGF_DIR="sgf-files"
+
+if [[ ! -d "$SGF_DIR" ]]; then
+    echo "No SGF directory found: $SGF_DIR"
+    exit 1
+fi
+
+for file in "$SGF_DIR"/*.sgf; do
     echo "Processing: $file"
 
     # Extract players from SGF header
